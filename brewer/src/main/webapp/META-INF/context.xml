@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<Context>
+    <Resource name="jdbc/brewerDB" auth="Container" 
+            factory="org.apache.naming.factory.BeanFactory"
+            type="com.mchange.v2.c3p0.ComboPooledDataSource"
+            driverClass="com.mysql.jdbc.Driver"
+            jdbcUrl="jdbc:mysql://localhost:3306/brewer?useSSL=false"
+            user="root"
+            password="teste" 
+            initialPoolSize="5" 
+            minPoolSize="5"
+            maxPoolSize="5" 
+            
+     />
+     <Resources cachingAllowed="true" cacheMaxSize="100000" />
+</Context>

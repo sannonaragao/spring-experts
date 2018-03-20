@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorator="layout/LayoutPadrao"
+	xmlns:data="http://www.thymeleaf.org/extras/data"
+	xmlns:brewer="http://brewer.algaworks.com">
+
+<head>
+<title>Pesquisa de Vendas</title>
+</head>
+
+<body>
+<section layout:fragment="conteudo">
+<div class="page-header">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-xs-10">
+				<h1>Pesquisa de Vendas</h1>
+			</div>
+
+			<div class="col-xs-2">
+				<div class="aw-page-header-controls">
+					<a class="btn  btn-default" th:href="@{/vendas/novo}"> <i
+						class="glyphicon  glyphicon-plus-sign"></i> <span
+						class="hidden-xs  hidden-sm">Nova Venda</span>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-fluid">
+	<form method="GET" th:object="${vendaFilter}">
+	
+	
+		<div class="row">
+			<div class="form-group  col-sm-6">
+				<label class="control-label" for="codigo">código</label> 
+				<input type="text" autofocus="autofocus" class="form-control" id="codigo" th:field="*{codigo}" />
+			</div>
+			
+			
+		
+			<div class="form-group  col-sm-6">
+				<label for="status" class="control-label">Status</label>
+				<select id="status" class="form-control" th:field="*{status}">
+                    <option value="">Todos os status</option>
+                    <option th:each="status : ${todosStatus}" th:value="${status}" th:text="${status.descricao}"></option>
+                </select>
+			</div>
+				
+				
+		</div>
+			
+		<div class="row">
+			<div class="form-group  col-sm-6">
+				<label for="dataCriacaoInicial">Data de criação</label>
+				<div class="form-inline">
+					<input type="text" class="form-control  aw-form-control-inline-sm  js-date" id="dataCriacaoInicial" 
+						th:field="*{dataCriacaoInicial}" autocomplete="off"/>
+					<label for="dataCriacaoFinal" class="aw-form-label-between">até</label>
+					<input type="text" class="form-control  aw-form-control-inline-sm  js-date" id="dataCriacaoInicial" 
+						th:field="*{dataCriacaoFinal}" autocomplete="off"/>
+				</div>
+			</div>
+			
+			<div class="form-group  col-sm-6">
+				<label for="valorMinimo">Valor total</label>
+				<div class="form-inline">
+					<input type="text" class="form-control  aw-form-control-inline-sm  js-decimal" id="valorMinimo" th:field="*{valorMinimo}"/>
+					<label for="valorMaximo" class="aw-form-label-between">até</label>
+					<input type="text" class="form-control  aw-form-control-inline-sm  js-decimal" id="valorMaximo" th:field="*{valorMaximo}"/>
+				</div>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="form-group  col-sm-6">
+				<label class="control-label" for="nomeCliente">Nome cliente</label>
+				<input type="text" class="form-control"/>
+			</div>
+			
+			<div class="form-group  col-sm-6">
+				<label class="control-label" for="cpfOuCnpj">CPF/CNPJ</label>
+				<input type="text" class="form-control"/>
+			</div>
+		</div>
+		<button type="submit" class="btn  btn-primary">Pesquisar</button>
+	</form>
+		
+	<div class="table-responsive  bw-tabela-simples">
+		<table class="table  table-hover">
+			<thead>
+				<tr>
+					<th class="table-vendas-col-codigo" ><brewer:order page="${pagina}" field="codigo" text="Codigo" /></th>
+					<th class="table-vendas-col-clientes-nome" ><brewer:order page="${pagina}" field="cliente" text="Nome" /></th>
+					<th class="table-vendas-col-data" >Data de criação</th>
+					<th class="table-vendas-col-valor" >ValorTotal</th>
+					<th class="table-vendas-col-vendedor" >Vendedor</th>
+					<th class="table-vendas-col-status" >Status</th>
+					<th class="table-vendas-col-acoes" ></th>
+				
+				</tr>
+			</thead>
+			
+			<tbody>
+				<tr th:each="venda : ${pagina.conteudo}">
+					<td th:text="${venda.codigo}"></td>
+					<td th:text="${venda.cliente.nome}"></td>
+					<td th:text="${venda.dataCriacao}" class="js-date table-vendas-col-data" ></td>
+					<td th:text="${venda.valorTotal}" class="js-decimal"></td>
+					<td th:text="${venda.usuario.nome}"></td>
+					<td th:text="${venda.status.descricao}"></td>
+					
+					
+					<td class="text-center">
+						<a class="btn  btn-link  btn-xs  js-tooltip" title="Editar" 
+								th:href="@{/vendas/{codigo}(codigo=${venda.codigo})}"> 
+							<i class="glyphicon glyphicon-pencil"></i>
+						</a>
+						<a class="btn  btn-link  btn-xs  js-tooltip  js-exclusao-btn" title="Excluir" href="#" 
+								data:url="@{/vendas/{codigo}(codigo=${venda.codigo})}"
+								data:objeto="${venda}">
+							<i class="glyphicon glyphicon-remove"></i>
+						</a>
+					</td>
+					
+				</tr>
+			</tbody>
+			
+		</table>
+	</div>
+	
+	<brewer:paginacao page="${pagina}"  />
+						
+</div>
+
+</section>
+</body>
+</html>

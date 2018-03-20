@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt" xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:th="http://www.thymeleaf.org">
+	
+<th:block th:fragment="paginacao (pagina)">
+	<div class="col-sm-12 text-center" th:if="${not pagina.vazia} or  ${pagina.atual} > 0">
+		<nav>
+			<ul class="pagination paginatin-sm"
+				th:with="paginaAtual=${pagina.atual}">
+				<li th:class="${pagina.primeira} ? disabled"><a
+					th:href="${pagina.urlParaPagina(paginaAtual -1 )} "
+					aria-label="Previous" th:remove="${pagina.primeira} ? tag"> <span
+						aria-hidden="true">&laquo;</span>
+				</a></li>
+
+				<th:block th:each="p : ${#numbers.sequence(1, pagina.total)}"
+					th:with="numeroPagina=${p - 1}, paginaAtual=${pagina.atual}">
+
+					<li th:class="${paginaAtual == numeroPagina} ? active"><a
+						th:href="${pagina.urlParaPagina(numeroPagina)}">[[${p}]]</a></li>
+				</th:block>
+
+				<li th:class="${pagina.ultima} ? disabled"><a
+					th:href="${pagina.urlParaPagina(paginaAtual +1)}"
+					aria-label="Next" th:remove="${pagina.ultima} ? tag"> <span
+						aria-hidden="true">&raquo;</span>
+				</a></li>
+			</ul>
+		</nav>
+
+	</div>
+
+</th:block>
+	
+</html>
+
+
+
+<!-- 
+	Html: fragment/Paginacao.html 
+	Processor em: com.algaworks.brewer.thymeleaf.processor.PaginacaoElementTagProcessor 
+	Dialect em: com.algaworks.brewer.thymeleaf.BrewerDialect
+-->
