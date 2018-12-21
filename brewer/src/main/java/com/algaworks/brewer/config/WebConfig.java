@@ -2,14 +2,11 @@ package com.algaworks.brewer.config;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
-import java.util.concurrent.TimeUnit;
-
-import javax.sql.DataSource;
 
 import org.springframework.beans.BeansException;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.guava.GuavaCacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.MessageSource;
@@ -22,14 +19,13 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiFormatView;
-import org.springframework.web.servlet.view.jasperreports.JasperReportsViewResolver;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
 import org.thymeleaf.spring4.SpringTemplateEngine;
@@ -47,16 +43,16 @@ import com.algaworks.brewer.controller.converter.GrupoConverter;
 import com.algaworks.brewer.session.TabelaItensVenda;
 import com.algaworks.brewer.thymeleaf.BrewerDialect;
 import com.github.mxab.thymeleaf.extras.dataattribute.dialect.DataAttributeDialect;
-import com.google.common.cache.CacheBuilder;
 
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 
 @Configuration
-@ComponentScan(basePackageClasses = { CervejasController.class, TabelaItensVenda.class })
+@ComponentScan(basePackageClasses = { CervejasController.class, TabelaItensVenda.class})
 @EnableWebMvc
 @EnableSpringDataWebSupport
 @EnableCaching
-public class WebConfig extends WebMvcConfigurerAdapter implements ApplicationContextAware {
+@EnableAsync
+public class WebConfig implements ApplicationContextAware, WebMvcConfigurer {
 
 	private ApplicationContext applicationContext;
 	
@@ -73,19 +69,7 @@ public class WebConfig extends WebMvcConfigurerAdapter implements ApplicationCon
 		resolver.setOrder(1);
 		return resolver;
 	}
-	
-	@Bean
-	public ViewResolver jasperReportsViewResolver(DataSource datasource) {
-		JasperReportsViewResolver resolver = new JasperReportsViewResolver();
-		resolver.setPrefix("classpath:/relatorios/");
-		resolver.setSuffix(".jasper");
-		resolver.setViewNames("relatorio_*");
-		resolver.setViewClass(JasperReportsMultiFormatView.class);
-		resolver.setJdbcDataSource(datasource);
-		resolver.setOrder(0);
-		return resolver;
-	}
-	
+
 	@Bean
 	public TemplateEngine templateEngine() {
 		SpringTemplateEngine engine = new SpringTemplateEngine();
@@ -96,10 +80,9 @@ public class WebConfig extends WebMvcConfigurerAdapter implements ApplicationCon
 		engine.addDialect(new BrewerDialect());
 		engine.addDialect(new DataAttributeDialect());
 		engine.addDialect(new SpringSecurityDialect());
-		
 		return engine;
 	}
-	
+
 	private ITemplateResolver templateResolver() {
 		SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
 		resolver.setApplicationContext(applicationContext);
@@ -122,13 +105,10 @@ public class WebConfig extends WebMvcConfigurerAdapter implements ApplicationCon
 		conversionService.addConverter(new EstadoConverter());
 		conversionService.addConverter(new GrupoConverter());
 		
-		
-//		NumberStyleFormatter bigDecimalFormatter = new NumberStyleFormatter("#,##0.00");
-		BigDecimalFormatter  bigDecimalFormatter = new  BigDecimalFormatter("#,##0.00");
+		BigDecimalFormatter bigDecimalFormatter = new BigDecimalFormatter("#,##0.00");
 		conversionService.addFormatterForFieldType(BigDecimal.class, bigDecimalFormatter);
 		
-//		NumberStyleFormatter integerFormatter = new NumberStyleFormatter("#,##0");
-		BigDecimalFormatter  integerFormatter = new  BigDecimalFormatter("#,##0");
+		BigDecimalFormatter integerFormatter = new BigDecimalFormatter("#,##0");
 		conversionService.addFormatterForFieldType(Integer.class, integerFormatter);
 		
 		// API de Datas do Java 8
@@ -139,31 +119,13 @@ public class WebConfig extends WebMvcConfigurerAdapter implements ApplicationCon
 		
 		return conversionService;
 	}
-		
-//	@Bean
-//	public LocaleResolver localeResolver(){
-//		return new FixedLocaleResolver(new Locale("pt","BR"));
-//	}
-
 	
 	@Bean
-	public CacheManager cacheManager(){
-		CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder()
-				.maximumSize(3)
-				.expireAfterAccess(20, TimeUnit.HOURS);
-				;
-		GuavaCacheManager cacheManager = new GuavaCacheManager();
+	public CacheManager cacheManager() {
 		
-		cacheManager.setCacheBuilder(cacheBuilder);
-		
-		return cacheManager;
-	}
-	/*
-	@Bean
-	public CacheManager cacheManager(){
 		return new ConcurrentMapCacheManager();
 	}
-*/
+	
 	@Bean
 	public MessageSource messageSource() {
 		ReloadableResourceBundleMessageSource bundle = new ReloadableResourceBundleMessageSource();
@@ -172,13 +134,11 @@ public class WebConfig extends WebMvcConfigurerAdapter implements ApplicationCon
 		return bundle;
 	}
 	
-
 	@Bean
-	public DomainClassConverter<FormattingConversionService> domainClassConverter(){
+	public DomainClassConverter<FormattingConversionService> domainClassConverter() {
 		return new DomainClassConverter<FormattingConversionService>(mvcConversionService());
 	}
 	
-	/* Internacionalização das mensagens dos Beans JPA */
 	@Bean
 	public LocalValidatorFactoryBean validator() {
 	    LocalValidatorFactoryBean validatorFactoryBean = new LocalValidatorFactoryBean();
@@ -191,5 +151,5 @@ public class WebConfig extends WebMvcConfigurerAdapter implements ApplicationCon
 	public Validator getValidator() {
 		return validator();
 	}
-	/* ----------------------------------------------- */
+	
 }
